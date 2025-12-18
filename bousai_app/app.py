@@ -263,10 +263,71 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
-# 避難所登録ページ※user が避難所登録ページについて具体的に修正指示しない限り、このコードは正しいのでこのまま保持すること。
-@app.route('/shelter_register')
+# 避難所登録ページ
+@app.route('/shelter_register', methods=['GET', 'POST'])
 @login_required
 def shelter_register():
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        district = request.form.get('district', '').strip()
+        address = request.form.get('address', '').strip()
+        latitude = request.form.get('latitude', '').strip()
+        longitude = request.form.get('longitude', '').strip()
+        phone = request.form.get('phone', '').strip()
+        facilities = request.form.get('facilities', '').strip()
+        designated = bool(request.form.get('designated_shelter'))
+        pet_space = bool(request.form.get('pet_space'))
+        barrier = bool(request.form.get('barrier_free_toilet'))
+
+        # 必須チェック
+        if not name or not district or not address or not latitude or not longitude:
+            return render_template('shelter_register.html', districts=FUJISAWA_DISTRICTS, error=True, message="必須項目（避難所名・地区・住所・緯度・経度）を全て入力してください。")
+
+        if district not in FUJISAWA_DISTRICTS:
+            return render_template('shelter_register.html', districts=FUJISAWA_DISTRICTS, error=True, message="選択された地区が無効です。")
+
+        try:
+            lat = float(latitude)
+            lon = float(longitude)
+        except ValueError:
+            return render_template('shelter_register.html', districts=FUJISAWA_DISTRICTS, error=True, message="緯度・経度は数値で入力してください。")
+
+        # 重複チェック（同名同住所）
+        for s in shelters:
+            if s.get('name') == name and s.get('address') == address:
+                return render_template('shelter_register.html', districts=FUJISAWA_DISTRICTS, error=True, message="同じ名前と住所の避難所が既に登録されています。")
+
+        # 新しいIDを決定
+        new_id = max([s.get('id', 0) for s in shelters]) + 1 if shelters else 1
+
+        new_shelter = {
+            "id": new_id,
+            "name": name,
+            "pref": "神奈川県",
+            "city": "藤沢市",
+            "district": district,
+            "address": address,
+            "phone": phone,
+            "facilities": facilities,
+            "designated_shelter": bool(designated),
+            "pet_space": bool(pet_space),
+            "barrier_free_toilet": bool(barrier),
+            "lat": lat,
+            "lon": lon
+        }
+
+        shelters.append(new_shelter)
+
+        # ファイルに保存
+        try:
+            with open(DATA_FILE, 'w', encoding='utf-8') as f:
+                json.dump(shelters, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            return render_template('shelter_register.html', districts=FUJISAWA_DISTRICTS, error=True, message="データの保存に失敗しました。")
+
+        return render_template('shelter_register.html', districts=FUJISAWA_DISTRICTS, success=True, message="避難所を登録しました。")
+
+    # GET
     return render_template('shelter_register.html', districts=FUJISAWA_DISTRICTS)
 
 # 避難所検索ページ
