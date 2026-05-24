@@ -10,6 +10,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
+  <!-- ヘッダー -->
+  <header class="app-header">
+    <div class="header-content">
+      <h1 class="app-title">防災アプリ</h1>
+      <div class="header-right">
+        <!-- ログイン状態表示 -->
+        {% if session.logged_in %}
+          <div class="login-status logged-in clickable" id="loginStatus" onclick="showLogoutConfirm()">
+            <i class="fas fa-user-check"></i>
+            <span>ログイン中</span>
+            {% if session.username %}
+              <span class="username">({{ session.username }})</span>
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="login-status not-logged-in clickable" id="loginStatus" onclick="goToLogin()">
+            <i class="fas fa-user-times"></i>
+            <span>未ログイン</span>
+          </div>
+        {% endif %}
+        <button class="hamburger-menu" id="hamburgerMenu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
   <!-- サイドメニュー -->
   <nav class="side-menu" id="sideMenu">
     <div class="side-menu-overlay" id="sideMenuOverlay"></div>
@@ -65,6 +94,49 @@
   </main>
 
   <style>
+    /* ヘッダーのスタイル */
+    .app-header {
+      background: linear-gradient(90deg, #ff4d4d, #ff944d, #ffee4d, #7dff4d, #4dd0ff, #7d4dff, #ff4dc4);
+      background-size: 1400% 1400%;
+      animation: rainbowShift 10s ease infinite;
+      color: white;
+      padding: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    @keyframes rainbowShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .app-title {
+      font-size: 1.4em;
+      font-weight: 600;
+      margin: 0;
+      color: white;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
     /* ログイン状態表示のスタイル */
     .login-status {
       display: flex;
